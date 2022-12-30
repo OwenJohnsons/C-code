@@ -4,9 +4,9 @@
  * 	This file contains the main() function for MAP55613 Assignment 5.
  * 	The purpose of this assignment is to generate correlated random
  * 	numbers and perform a simple simulation using these numbers.
- * @author R. Morrin
- * @version 2.0
- * @date 2022-11-26
+ * @author Owen A. Johnson
+ * @version 1.0
+ * @date 2022-12-24
  */
 
 #include <stdio.h>
@@ -32,12 +32,8 @@ int main(void)
 
     double *corr = mkl_malloc(sizeof *corr * dim * dim, 64); 	/* hold correlation matrix */
     double *port = mkl_malloc(sizeof *port * num_sims, 64); 	/* Hold array of portfolio totals */
-    //
-    // NOTE: Remember to explicitly free up the memory allocated above
-    // before the program exits. You will need to consider what is 
-    // happening to the memory when the process forks. 
-    //
 
+    // NOTE: Remember to explicitly free up the memory allocated above
 
     const int NUM_CHILDREN = 2;
     int pipefd[NUM_CHILDREN][2]; 	/* 2D array to hold file descriptors for pipes */
@@ -49,9 +45,8 @@ int main(void)
     // pipe in the parent and child processes
     //
 
-    //
     //  Note: Remember to add error checking for fork etc.
-    //
+
     pid_t pid = fork();  	/* Fork first child 	*/
     if(pid==0){ 		/* Child                */
 
@@ -59,36 +54,21 @@ int main(void)
 	cholesky_decompose(corr, dim); 		/* Find Cholesky decomposition for this matrix */
 
 	double *ptr = rvs; 	/* Pointer to keep track of location we are working on in rvs */
-        //  
-        // Use the above ptr as an argument when calling 
-        // transform_to_correlated(...) in a loop in order to  
-        // transform all of the random variates to correlated.
-        // You will transform each set of 4 at a time. So you 
-        // will have num_sims iterations.
-        // (You can use pointer arithmetic with ptr.) 
-        //  
-
 
 	portfolio_sums(rvs, port, dim, num_sims); 	/* Calculate the array of portfolio totals */
 
 	double mean = calculate_mean(port, num_sims); 	/* Calculate the mean of the portfolio totals */
 	double variance = calculate_variance(port, num_sims); /* Calculate variance of portfolio totals */
 
-	//
-	// Write the following quantitites back to the parent process
-	//  (1) Lower trangular matrix from Cholesky
-	//  (2) Calculated mean
-	//  (3) Calculated Variance
-	//
-	// Then clean up and exit child process
+
+	// Clean up memory and exit
+    mkl_free(rvs);
+    mkl_free(corr);
+    mkl_free(port);
+    exit(0);
+
     }
 
-
-    //
-    // Do the same procedure as above to fork a second process which 
-    // will calculate the simulation for rhos[2]. You will obviously
-    // need a second pipe. Don't forget error checking
-    //
 
     pid_t pid2 = fork();
     if(pid2==0){ 		/* Second Child                	 */
@@ -124,14 +104,6 @@ int main(void)
     printf("Expected value =  %lf\n", mean );
     printf("Variance =  %lf\n\n", var );
 
-    //
-    // Now Read values from both child processes and 
-    // print. You can overwrite the memory used to store
-    // corr/mean/var above. i.e. Read from first child
-    // and then print to screen. Then read from second 
-    // child and print to screen. Then tidy up any 
-    // allocated memory before exiting.
-    //
 
     return 0;
 }

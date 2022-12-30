@@ -30,20 +30,22 @@ int main(int argc, char *argv[])
 	// in coord.c
 	//
 
+	void (*x_first_ptr)(const void *, const void *) = sort_x_then_y;
+	void (*y_first_ptr)(const void *, const void *) = sort_y_then_x;
 
 	printf("Enter 0 to sort by x coordinate first, or 1 to sort by y coordinate\n");
 	
-	//
-	// Process the number entered and then use that choice to set the 
-	// function pointer "sorter" above
-	//
+	int choice; 
+	scanf("%d", &choice);
 
-
-	//
-	// Call qsort on X. Pass in the function pointer "sorter" you set above
-	//
-
-
+	if (choice == 0) {
+		// Set sorter to point to the function that sorts by x first
+		x_first_ptr(X, 10);
+		
+	} else {
+		// Set sorter to point to the function that sorts by y first
+		y_first_ptr(X, 10);
+	}
 
 	/*
 	 * Print result to screen
